@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Shuffle } from "lucide-react"
+import { Shuffle, Home } from "lucide-react"
 
 const QuizApp = () => {
   const allQuestions = {
@@ -1170,7 +1170,7 @@ const QuizApp = () => {
         ans: "a",
       },
       {
-        q: '"A serious disruption of the functioning of a community or a society at any scale due to hazardous events interacting with conditions of exposure, vulnerability and capacity, leading to one or more of the following: human, material, economic and environmental losses and impacts." is a definition for',
+        q: '"A serious disruption of the functioning of the community or a society at any scale due to hazardous events interacting with conditions of exposure, vulnerability and capacity, leading to one or more of the following: human, material, economic and environmental losses and impacts." is a definition for',
         opts: { a: "hazard", b: "exposure", c: "vulnerability", d: "disaster" },
         ans: "d",
       },
@@ -1248,11 +1248,25 @@ const QuizApp = () => {
     setQuizComplete(false)
   }
 
-  // ... rest of code here ...
-
   return (
     <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
+        {selectedCategory && !quizComplete && (
+          <button
+            onClick={() => {
+              setSelectedCategory(null)
+              setCurrentQuestion(0)
+              setAnswers({})
+              setScore(0)
+              setQuizComplete(false)
+            }}
+            className="mb-4 flex items-center gap-2 px-4 py-2 bg-muted hover:bg-muted text-muted-foreground hover:text-card-foreground rounded-lg transition-colors font-medium"
+          >
+            <Home className="w-4 h-4" />
+            Home
+          </button>
+        )}
+
         <div className="mb-8 text-center">
           <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent mb-3">
             Geography Quiz
