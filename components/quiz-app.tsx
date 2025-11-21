@@ -1212,240 +1212,232 @@ const QuizApp = () => {
     ],
   }
 
-  const [selectedWeeks, setSelectedWeeks] = useState([])
-  const [numQuestions, setNumQuestions] = useState(10)
-  const [quizStarted, setQuizStarted] = useState(false)
-  const [quiz, setQuiz] = useState([])
-  const [userAnswers, setUserAnswers] = useState({})
-  const [submitted, setSubmitted] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [currentQuestion, setCurrentQuestion] = useState(0)
+  const [score, setScore] = useState(0)
+  const [answers, setAnswers] = useState<{ [key: number]: string }>({})
+  const [quizComplete, setQuizComplete] = useState(false)
 
-  const toggleWeek = (week) => {
-    setSelectedWeeks((prev) => (prev.includes(week) ? prev.filter((w) => w !== week) : [...prev, week]))
+  const currentQuestions = selectedCategory ? allQuestions[selectedCategory as keyof typeof allQuestions] : []
+  const currentQ = currentQuestions[currentQuestion]
+
+  const handleAnswerSelect = (answer: string) => {
+    setAnswers((prev) => ({ ...prev, [currentQuestion]: answer }))
   }
 
-  const shuffleArray = (arr) => {
-    const shuffled = [...arr].sort(() => Math.random() - 0.5)
-    return shuffled
-  }
-
-  const startQuiz = (fullTest = false) => {
-    const weeks = fullTest ? ["PYQ", 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] : selectedWeeks
-    const totalAvailable = weeks.reduce((sum, w) => sum + (allQuestions[w]?.length || 0), 0)
-    const count = fullTest ? totalAvailable : Math.min(numQuestions, totalAvailable)
-
-    if (weeks.length === 0) {
-      alert("Please select at least one week or PYQ")
-      return
-    }
-
-    const pooledQuestions = weeks.flatMap((w) => allQuestions[w] || [])
-    const selectedQuestions = pooledQuestions
-      .sort(() => Math.random() - 0.5)
-      .slice(0, count)
-      .map((q) => ({
-        ...q,
-        optionsOrder: shuffleArray(["a", "b", "c", "d"]),
-      }))
-
-    setQuiz(selectedQuestions)
-    setUserAnswers({})
-    setSubmitted(false)
-    setQuizStarted(true)
-  }
-
-  const handleAnswer = (qIndex, answer) => {
-    setUserAnswers((prev) => ({ ...prev, [qIndex]: answer }))
-  }
-
-  const calculateScore = () => {
-    let score = 0
-    quiz.forEach((q, i) => {
-      if (userAnswers[i] === q.ans) score++
+  const submitQuiz = () => {
+    let correctCount = 0
+    Object.keys(answers).forEach((qIndex) => {
+      if (answers[Number.parseInt(qIndex)] === currentQuestions[Number.parseInt(qIndex)].ans) {
+        correctCount++
+      }
     })
-    return score
+    setScore(correctCount)
+    setQuizComplete(true)
   }
 
-  const getOptionLabel = (order, idx) => order[idx]
+  const shuffleQuestions = () => {
+    if (!selectedCategory) return
 
-  if (quizStarted) {
-    const score = calculateScore()
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-        <div className="max-w-3xl mx-auto">
-          <button
-            onClick={() => setQuizStarted(false)}
-            className="mb-6 px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
-          >
-            Back to Selection
-          </button>
-
-          <div className="bg-white rounded-lg shadow-xl p-8 mb-6">
-            <h1 className="text-3xl font-bold text-gray-800 mb-2">Quiz: Conservation Geography</h1>
-            <p className="text-gray-600">Total Questions: {quiz.length}</p>
-          </div>
-
-          <div className="space-y-6">
-            {quiz.map((q, i) => (
-              <div key={i} className="bg-white rounded-lg shadow p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="font-semibold text-lg text-gray-800 flex-1">
-                    Q{i + 1}: {q.q}
-                  </h3>
-                  <span className="text-sm bg-indigo-100 text-indigo-800 px-3 py-1 rounded">
-                    {submitted ? (userAnswers[i] === q.ans ? "✓" : "✗") : "-"}
-                  </span>
-                </div>
-
-                <div className="space-y-2">
-                  {q.optionsOrder.map((optKey, idx) => (
-                    <label
-                      key={idx}
-                      className="flex items-center p-3 border-2 rounded-lg cursor-pointer transition"
-                      style={{
-                        borderColor: submitted
-                          ? userAnswers[i] === optKey && optKey === q.ans
-                            ? "#10b981"
-                            : userAnswers[i] === optKey
-                              ? "#ef4444"
-                              : "#e5e7eb"
-                          : userAnswers[i] === optKey
-                            ? "#4f46e5"
-                            : "#e5e7eb",
-                        backgroundColor: submitted
-                          ? optKey === q.ans
-                            ? "#ecfdf5"
-                            : userAnswers[i] === optKey && optKey !== q.ans
-                              ? "#fef2f2"
-                              : "#ffffff"
-                          : userAnswers[i] === optKey
-                            ? "#eef2ff"
-                            : "#ffffff",
-                      }}
-                    >
-                      <input
-                        type="radio"
-                        name={`q${i}`}
-                        value={optKey}
-                        checked={userAnswers[i] === optKey}
-                        onChange={() => !submitted && handleAnswer(i, optKey)}
-                        disabled={submitted}
-                        className="mr-3"
-                      />
-                      <span className="text-gray-800">
-                        {optKey.toUpperCase()}) {q.opts[optKey]}
-                        {submitted && optKey === q.ans && <span className="ml-2 text-green-600">✓ Correct</span>}
-                        {submitted && userAnswers[i] === optKey && optKey !== q.ans && (
-                          <span className="ml-2 text-red-600">✗ Wrong</span>
-                        )}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {!submitted ? (
-            <button
-              onClick={() => setSubmitted(true)}
-              className="mt-8 w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold text-lg"
-            >
-              Submit Quiz
-            </button>
-          ) : (
-            <div className="mt-8 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-lg shadow-xl p-8">
-              <h2 className="text-2xl font-bold mb-2">Your Score</h2>
-              <p className="text-5xl font-bold mb-2">
-                {score} / {quiz.length}
-              </p>
-              <p className="text-lg mb-6">Percentage: {((score / quiz.length) * 100).toFixed(2)}%</p>
-              <button
-                onClick={() => setQuizStarted(false)}
-                className="px-6 py-3 bg-white text-indigo-600 rounded-lg hover:bg-gray-100 transition font-semibold"
-              >
-                Start New Quiz
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    )
+    const shuffled = [...allQuestions[selectedCategory as keyof typeof allQuestions]].sort(() => Math.random() - 0.5)
+    // @ts-ignore
+    allQuestions[selectedCategory as keyof typeof allQuestions] = shuffled
+    setCurrentQuestion(0)
+    setAnswers({})
+    setScore(0)
+    setQuizComplete(false)
   }
+
+  // ... rest of code here ...
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+    <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-lg shadow-xl p-8 mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">MCQ Quiz Generator</h1>
-          <p className="text-gray-600">Conservation Geography - 194 Questions (120 Weekly + 74 PYQs)</p>
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent mb-3">
+            Geography Quiz
+          </h1>
+          <p className="text-muted-foreground text-lg">Master the fundamentals of geography</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Select Weeks</h2>
-          <div className="mb-4">
+        {/* Quiz Category Selection */}
+        {!selectedCategory ? (
+          <div className="space-y-4">
+            <div className="bg-card border border-border rounded-lg p-8 shadow-sm hover:shadow-md transition-shadow">
+              <h2 className="text-2xl font-semibold text-card-foreground mb-6">Select a Quiz Category</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {Object.keys(allQuestions).map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => {
+                      setSelectedCategory(category)
+                      setCurrentQuestion(0)
+                      setScore(0)
+                      setAnswers({})
+                    }}
+                    className="p-6 bg-gradient-to-br from-primary/10 to-accent/10 border border-primary/30 rounded-lg hover:from-primary/20 hover:to-accent/20 hover:border-primary/50 transition-all duration-300 text-left group"
+                  >
+                    <div className="text-xl font-bold text-primary group-hover:text-accent transition-colors">
+                      {category === "PYQ" ? "Previous Year Questions" : `Chapter ${category}`}
+                    </div>
+                    <div className="text-sm text-muted-foreground mt-2">
+                      {allQuestions[category as keyof typeof allQuestions].length} questions
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : quizComplete ? (
+          /* Enhanced results screen with better styling */
+          <div className="bg-card border border-border rounded-xl p-8 shadow-sm space-y-6">
+            <div className="text-center space-y-4">
+              <h2 className="text-3xl font-bold text-card-foreground">Quiz Complete!</h2>
+              <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg p-6 border border-primary/20">
+                <div className="text-5xl font-bold text-primary mb-2">
+                  {score}/{currentQuestions.length}
+                </div>
+                <div className="text-lg text-muted-foreground">
+                  {Math.round((score / currentQuestions.length) * 100)}% Correct
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-4 max-h-96 overflow-y-auto">
+              <h3 className="font-semibold text-card-foreground">Review Answers:</h3>
+              {currentQuestions.map((q, idx) => (
+                <div
+                  key={idx}
+                  className={`p-4 rounded-lg border transition-colors ${
+                    answers[idx] === q.ans
+                      ? "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-300 dark:border-emerald-700"
+                      : "bg-red-50 dark:bg-red-950/20 border-red-300 dark:border-red-700"
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="font-medium text-sm text-card-foreground">Question {idx + 1}</span>
+                    <span
+                      className={`text-xs font-bold px-2 py-1 rounded ${
+                        answers[idx] === q.ans
+                          ? "bg-emerald-200 dark:bg-emerald-700 text-emerald-900 dark:text-emerald-100"
+                          : "bg-red-200 dark:bg-red-700 text-red-900 dark:text-red-100"
+                      }`}
+                    >
+                      {answers[idx] === q.ans ? "Correct" : "Incorrect"}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-2">{q.q}</p>
+                  <div className="flex gap-2 text-xs">
+                    <span className="text-muted-foreground">
+                      Your answer:{" "}
+                      <span className="font-semibold text-card-foreground">
+                        {q.opts[answers[idx] as keyof typeof q.opts]}
+                      </span>
+                    </span>
+                    {answers[idx] !== q.ans && (
+                      <span className="text-muted-foreground">
+                        Correct:{" "}
+                        <span className="font-semibold text-card-foreground">
+                          {q.opts[q.ans as keyof typeof q.opts]}
+                        </span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
             <button
-              onClick={() => toggleWeek("PYQ")}
-              className={`px-6 py-3 rounded-lg font-semibold transition ${
-                selectedWeeks.includes("PYQ")
-                  ? "bg-purple-600 text-white"
-                  : "bg-purple-200 text-gray-800 hover:bg-purple-300"
-              }`}
+              onClick={() => {
+                setSelectedCategory(null)
+                setQuizComplete(false)
+                setAnswers({})
+                setScore(0)
+              }}
+              className="w-full py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold rounded-lg hover:shadow-lg transition-all duration-300"
             >
-              PYQ (Previous Year Questions) - 74 Qs
+              Back to Categories
             </button>
           </div>
-          <div className="grid grid-cols-3 gap-3">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((week) => (
-              <button
-                key={week}
-                onClick={() => toggleWeek(week)}
-                className={`p-3 rounded-lg font-semibold transition ${
-                  selectedWeeks.includes(week)
-                    ? "bg-indigo-600 text-white"
-                    : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-                }`}
-              >
-                Week {week}
-              </button>
-            ))}
+        ) : (
+          /* Updated question card styling */
+          <div className="space-y-6">
+            {/* Progress Bar */}
+            <div className="bg-card border border-border rounded-lg p-4 shadow-sm">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-sm font-medium text-muted-foreground">
+                  Question {currentQuestion + 1} of {currentQuestions.length}
+                </span>
+                <button
+                  onClick={() => shuffleQuestions()}
+                  className="flex items-center gap-2 px-3 py-1 bg-primary/10 hover:bg-primary/20 text-primary rounded-lg transition-colors text-sm"
+                >
+                  <Shuffle className="w-4 h-4" />
+                  Shuffle
+                </button>
+              </div>
+              <div className="w-full bg-muted rounded-full h-2">
+                <div
+                  className="bg-gradient-to-r from-primary to-accent h-2 rounded-full transition-all duration-500"
+                  style={{
+                    width: `${((currentQuestion + 1) / currentQuestions.length) * 100}%`,
+                  }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Question Card */}
+            <div className="bg-card border border-border rounded-xl p-8 shadow-sm space-y-6">
+              <div>
+                <h2 className="text-2xl font-semibold text-card-foreground mb-6 leading-relaxed">
+                  {currentQuestion + 1}. {currentQ?.q}
+                </h2>
+              </div>
+
+              <div className="space-y-3">
+                {Object.entries(currentQ?.opts || {}).map(([key, opt]) => (
+                  <button
+                    key={key}
+                    onClick={() => handleAnswerSelect(key)}
+                    className={`w-full p-4 text-left rounded-lg border-2 transition-all duration-200 font-medium ${
+                      answers[currentQuestion] === key
+                        ? "bg-primary text-primary-foreground border-primary shadow-md"
+                        : "bg-card text-card-foreground border-border hover:border-primary/50 hover:bg-muted"
+                    }`}
+                  >
+                    <span className="text-lg">({key.toUpperCase()})</span> {opt}
+                  </button>
+                ))}
+              </div>
+
+              {/* Navigation Buttons */}
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={() => setCurrentQuestion(Math.max(0, currentQuestion - 1))}
+                  disabled={currentQuestion === 0}
+                  className="flex-1 py-3 bg-muted text-muted-foreground rounded-lg hover:bg-muted hover:text-card-foreground disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                >
+                  Previous
+                </button>
+                {currentQuestion === currentQuestions.length - 1 ? (
+                  <button
+                    onClick={submitQuiz}
+                    className="flex-1 py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-lg hover:shadow-lg transition-all font-medium"
+                  >
+                    Submit Quiz
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setCurrentQuestion(currentQuestion + 1)}
+                    className="flex-1 py-3 bg-gradient-to-r from-primary to-accent text-primary-foreground rounded-lg hover:shadow-lg transition-all font-medium"
+                  >
+                    Next
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
-          <p className="text-sm text-gray-600 mt-4">
-            Selected:{" "}
-            {selectedWeeks.length > 0
-              ? selectedWeeks.map((w) => (w === "PYQ" ? "PYQ" : `Week ${w}`)).join(", ")
-              : "None"}
-          </p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-semibold text-gray-800 mb-4">Number of Questions</h2>
-          <input
-            type="number"
-            min="1"
-            max={selectedWeeks.reduce((sum, w) => sum + (allQuestions[w]?.length || 0), 0)}
-            value={numQuestions}
-            onChange={(e) => setNumQuestions(Number.parseInt(e.target.value) || 1)}
-            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-indigo-600 focus:outline-none"
-          />
-          <p className="text-sm text-gray-600 mt-2">
-            Max available: {selectedWeeks.reduce((sum, w) => sum + (allQuestions[w]?.length || 0), 0)} questions
-          </p>
-        </div>
-
-        <button
-          onClick={() => startQuiz()}
-          className="w-full px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition font-semibold text-lg mb-4"
-        >
-          Start Custom Quiz
-        </button>
-
-        <button
-          onClick={() => startQuiz(true)}
-          className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold text-lg flex items-center justify-center gap-2"
-        >
-          <Shuffle size={20} />
-          Start Full Test (All 194 Questions)
-        </button>
+        )}
       </div>
     </div>
   )
