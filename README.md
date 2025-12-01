@@ -1,30 +1,39 @@
-# Quiz app deployment
+# 🧠 Quiz App – 150+ Randomized Practice Questions
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+A self-quizzing mini-app built to test concepts using a live question bank of 150+ questions.
+Questions refresh randomly and reshuffle each week, helping improve recall through spaced repetition.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/yuvrajkumar2022-2702s-projects/v0-quiz-app-deployment)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/MGriwj2MSbU)
+---
 
-## Overview
+## 🔥 Key Features
+- 150+ MCQ questions covering multiple subjects/topics
+- Randomized quiz selection (no repeat within same session)
+- Weekly auto-rotation of questions for spaced learning
+- Dark/Light mode switch for comfortable long practice
+- Score tracking + session history retention
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+---
 
-## Deployment
+## 🧩 Challenges & What I Solved
 
-Your project is live at:
+This was one of the most challenging apps I built recently because:
 
-**[https://vercel.com/yuvrajkumar2022-2702s-projects/v0-quiz-app-deployment](https://vercel.com/yuvrajkumar2022-2702s-projects/v0-quiz-app-deployment)**
+1. I had to design a **non-repeating random questioning logic**.
+2. Ensure the quiz reshuffles automatically every week.
+3. Maintain state across refreshes – without losing progress.
+4. Implement Dark/Light theme toggle with persistent preference.
+5. Scale question storage cleanly as the list crosses 150 items.
 
-## Build your app
+The final result is smooth, fast and easily extendable – more questions can be added anytime without breaking UI or logic.
 
-Continue building your app on:
+---
 
-**[https://v0.app/chat/projects/MGriwj2MSbU](https://v0.app/chat/projects/MGriwj2MSbU)**
+## 🚀 Tech Stack
+- HTML / CSS / JavaScript
+- Local Storage for session & theme persistence
+- Responsive UI + Dark/Light mode switching
 
-## How It Works
+---
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+## 🔗 Repository
+> https://github.com/y2jjjj/v0-quiz-app-deployment
